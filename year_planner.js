@@ -1,37 +1,52 @@
+// User Setting
+startYear = 2013;
+startMonth = 4;
+endYear = 2015;
+endMonth = 3;
+// Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6
+keyDay = 4;
+
+color1 = setColor(75.56, 64.33, 60.16, 16.13);
+color2 = setColor(0, 0, 0, 0);
+
+// Set Date
+firstDate = new Date(startYear, startMonth -1, 1);
+startDateOfMonth = keyDay - firstDate.getDate() +1;
+startDate = new Date(startYear, startMonth -1, startDateOfMonth);
+tmpDate = new Date();
+
 // Document Size
 // A4 : 210mm　* 297mm
 // point = mm * 2.835
 var doc = {"width": 210*2.835, "height": 297*2.835};
 
-startYear = 2013;
-startMonth = 4;
-
 docObj = documents.add(DocumentColorSpace.CMYK, doc.width, doc.height);
-
 activeObj = docObj;
 
-color1 = setColor(75.56, 64.33, 60.16, 16.13);
-color2 = setColor(0, 0, 0, 0);
-
+// drawObject
 addPath(activeObj, 38.347, 47.19, 38.347, 47.19+735.955, 2, color1, {type:"solid"});
 addPath(activeObj, 38.347, 780.785, 38.347, 780.785+31.478, 2, color1, {type:"solid"});
 addPath(activeObj, 38.347, 20.105, 38.347, 20.105+27.085, 2, color1, {type:"dash", d1: 0, d2: 4});
 
-tmpYear = startYear;
-tmpMonth = startMonth;
-
 yearIcon(activeObj, 10, 832.105, color1);
-addText(activeObj, 37.996, 816.662, 14, tmpYear, color2);
+addText(activeObj, 37.996, 816.662, 14, startDate.getFullYear(), color2);
+var prevMonth;
 
 for(var i = 0; i < 13; i++) {
+	tmpDate.setTime(startDate.getTime()+86400000*7*i);
 	d = 61.149*i;
+
+	if(prevMonth != tmpDate.getMonth()+1) {
+		monthlyIcon(activeObj, 13.004, 788.49-d, color1);
+		addText(activeObj, 23.015, 794.106-d, 12, tmpDate.getMonth()+1, color2);
+		prevMonth = tmpDate.getMonth()+1;
+	}
+
 	addPath(activeObj, 35, 780.785-d, 277.64, 780.785-d, 1, color1, {type:"dash", d1: 3, d2: 3});
 	addEllipse(activeObj, 31.26, 788.177-d, 14.173, color2, color1);
-	addText(activeObj, 38.23, 778.262-(61.149*i), 9, i, color1);
+	addText(activeObj, 38.23, 778.262-(61.149*i), 9, tmpDate.getDate(), color1);
 }
 
-monthlyIcon(activeObj, 13.004, 788.49, color1);
-addText(activeObj, 23.015, 794.106, 12, tmpMonth, color2);
 
 function addPath(layerObj, x1, y1, x2, y2, width, color, style) {
 	pObj = layerObj.pathItems.add();
