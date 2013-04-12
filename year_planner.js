@@ -1,3 +1,5 @@
+////////////////////
+
 // User Setting
 startYear = 2013;
 startMonth = 4;
@@ -9,44 +11,87 @@ keyDay = 4;
 color1 = setColor(75.56, 64.33, 60.16, 16.13);
 color2 = setColor(0, 0, 0, 0);
 
-// Set Date
-firstDate = new Date(startYear, startMonth -1, 1);
-startDateOfMonth = keyDay - firstDate.getDate() +1;
-startDate = new Date(startYear, startMonth -1, startDateOfMonth);
-tmpDate = new Date();
+////////////////////
+
+// lineCount and pageCount
+var y = startYear;
+var m = startMonth;
+var monthCount = 0;
+var lineCount = 0;
+var pageCount = 0;
+while(y != endYear || m != endMonth) {
+	if(monthCount%3 == 0) {
+		lineCount++;
+	}
+	if(monthCount%6 == 0) {
+		pageCount++;
+	}
+	monthCount++;
+	m++;
+	if(m > 12) {
+		y++;
+		m = 1;
+	}
+}
 
 // Document Size
 // A4 : 210mm　* 297mm
 // point = mm * 2.835
 var doc = {"width": 210*2.835, "height": 297*2.835};
+docObj = documents.add(DocumentColorSpace.CMYK, doc.width, doc.height, pageCount, DocumentArtboardLayout.GridByCol, 0);
 
-docObj = documents.add(DocumentColorSpace.CMYK, doc.width, doc.height);
-activeObj = docObj;
-
-// drawObject
-addPath(activeObj, 38.347, 47.19, 38.347, 47.19+735.955, 2, color1, {type:"solid"});
-addPath(activeObj, 38.347, 780.785, 38.347, 780.785+31.478, 2, color1, {type:"solid"});
-addPath(activeObj, 38.347, 20.105, 38.347, 20.105+27.085, 2, color1, {type:"dash", d1: 0, d2: 4});
-
-yearIcon(activeObj, 10, 832.105, color1);
-addText(activeObj, 37.996, 816.662, 14, startDate.getFullYear(), color2);
+// Set Date
+firstDate = new Date(startYear, startMonth -1, 1);
+startDateOfMonth = keyDay - firstDate.getDate() +1;
+startDate = new Date(startYear, startMonth -1, startDateOfMonth);
+tmpDate = startDate;
+var prevYear;
 var prevMonth;
 
-for(var i = 0; i < 13; i++) {
-	tmpDate.setTime(startDate.getTime()+86400000*7*i);
-	d = 61.149*i;
 
-	if(prevMonth != tmpDate.getMonth()+1) {
-		monthlyIcon(activeObj, 13.004, 788.49-d, color1);
-		addText(activeObj, 23.015, 794.106-d, 12, tmpDate.getMonth()+1, color2);
-		prevMonth = tmpDate.getMonth()+1;
+for(l = 0; l < lineCount; l++) {
+	// add Layer
+	layObj = activeDocument.layers.add();
+	layObj.name = "Layer " + l;
+	activeObj = layObj;
+
+	// add Main Line
+	addPath(activeObj, 38.347, 47.19, 38.347, 47.19+735.955, 2, color1, {type:"solid"});
+	addPath(activeObj, 38.347, 20.105, 38.347, 20.105+27.085, 2, color1, {type:"dash", d1: 0, d2: 4});
+
+	// add Year Icon
+	if(l%2 == 0 || prevYear != tmpDate.getFullYear()) {
+		addPath(activeObj, 38.347, 780.785, 38.347, 780.785+31.478, 2, color1, {type:"solid"});
+		yearIcon(activeObj, 10, 832.105, color1);
+		addText(activeObj, 37.996, 816.662, 14, startDate.getFullYear(), color2);
+		prevYear = tmpDate.getFullYear();
+	} else {
+		addPath(activeObj, 38.347, 780.785, 38.347, 780.785+31.478, 2, color1, {type:"dash", d1:0, d2:4});
 	}
 
-	addPath(activeObj, 35, 780.785-d, 277.64, 780.785-d, 1, color1, {type:"dash", d1: 3, d2: 3});
-	addEllipse(activeObj, 31.26, 788.177-d, 14.173, color2, color1);
-	addText(activeObj, 38.23, 778.262-(61.149*i), 9, tmpDate.getDate(), color1);
-}
+	// draw every week
+	for(var i = 0; i < 13; i++) {
+		d = 61.149*i;
 
+		// add Monthly Icon
+		if(prevMonth != tmpDate.getMonth()+1) {
+			monthlyIcon(activeObj, 13.004, 788.49-d, color1);
+			addText(activeObj, 23.015, 794.106-d, 12, tmpDate.getMonth()+1, color2);
+			prevMonth = tmpDate.getMonth()+1;
+		}
+
+		addPath(activeObj, 35, 780.785-d, 277.64, 780.785-d, 1, color1, {type:"dash", d1: 3, d2: 3});
+		addEllipse(activeObj, 31.26, 788.177-d, 14.173, color2, color1);
+		addText(activeObj, 38.23, 778.262-(61.149*i), 9, tmpDate.getDate(), color1);
+
+		tmpDate.setTime(tmpDate.getTime()+86400000*7);
+	}
+
+	// translate all items on active layer for right side
+	for(i = 0; i < activeObj.pageItems.length; i++) {
+		activeObj.pageItems[i].translate((doc.width/2)*l, 0)
+	}
+}
 
 function addPath(layerObj, x1, y1, x2, y2, width, color, style) {
 	pObj = layerObj.pathItems.add();
